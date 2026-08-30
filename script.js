@@ -47,11 +47,6 @@ const LINKS = [
     url: 'https://rutgersqfc.com/competition',
   },
   {
-    label: 'Road to Quant Finance',
-    sub: 'Quant challenge series',
-    url: 'https://rutgersqfc.com/rtqf',
-  },
-  {
     label: 'Research Teams on GitHub',
     sub: 'ML pricing · RL trading · rough volatility · LOB models',
     url: 'https://github.com/Rutgers-Quant-Finance-Club',
