@@ -49,13 +49,12 @@ const LINKS = [
   {
     label: 'Road to Quant Finance',
     sub: 'Quant challenge series',
-    url: 'https://rutgersqfc.com/quant-challenge',
+    url: 'https://rutgersqfc.com/rtqf',
   },
   {
     label: 'Research Teams on GitHub',
     sub: 'ML pricing · RL trading · rough volatility · LOB models',
-    // NOTE: verify this org URL — replace if the club uses a different handle.
-    url: 'https://github.com/RutgersQFC',
+    url: 'https://github.com/Rutgers-Quant-Finance-Club',
   },
   {
     label: 'Get Involved @ Rutgers',
