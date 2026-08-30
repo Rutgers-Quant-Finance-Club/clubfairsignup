@@ -7,10 +7,15 @@
   <meta name="description" content="Official link hub for the Rutgers Quantitative Finance Club (QFC). Verify your Rutgers email to access club links." />
   <meta name="color-scheme" content="light dark" />
 
+  <link rel="icon" type="image/png" href="assets/logo_black.png" />
+  <link rel="apple-touch-icon" href="assets/logo_black.png" />
+
   <!-- Open Graph -->
   <meta property="og:title" content="Rutgers Quantitative Finance Club" />
   <meta property="og:description" content="Club links, competitions, research teams, and how to get involved." />
   <meta property="og:type" content="website" />
+  <!-- og:image must be absolute; update if you move to a custom domain -->
+  <meta property="og:image" content="https://rutgers-quant-finance-club.github.io/clubfairsignup/assets/logo_black.png" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -27,15 +32,10 @@
     ============================================================= -->
     <section id="gate" class="panel gate" aria-labelledby="gate-title">
       <div class="brand">
-        <!-- Swap this inline SVG for the club logo file if you have one:
-             <img class="brand__mark" src="assets/logo_black.png" alt="Rutgers QFC" /> -->
-        <span class="brand__mark" aria-hidden="true">
-          <svg viewBox="0 0 64 64" width="56" height="56" role="img" aria-label="QFC monogram">
-            <rect x="1.5" y="1.5" width="61" height="61" rx="12" fill="none" stroke="currentColor" stroke-width="3"/>
-            <text x="32" y="41" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="24" fill="currentColor">QFC</text>
-            <rect x="16" y="49" width="32" height="4" rx="2" fill="var(--scarlet)"/>
-          </svg>
-        </span>
+        <picture class="brand__mark">
+          <source srcset="assets/logo_white.png" media="(prefers-color-scheme: dark)" />
+          <img src="assets/logo_black.png" alt="Rutgers Quantitative Finance Club" width="72" height="72" />
+        </picture>
         <h1 id="gate-title" class="brand__name">Rutgers Quantitative<br />Finance Club</h1>
         <p class="brand__tag">Verify your Rutgers email to unlock the club links.</p>
       </div>
@@ -73,13 +73,10 @@
     ============================================================= -->
     <main id="hub" class="panel hub" hidden aria-labelledby="hub-title">
       <div class="brand brand--compact">
-        <span class="brand__mark" aria-hidden="true">
-          <svg viewBox="0 0 64 64" width="44" height="44" role="img" aria-label="QFC monogram">
-            <rect x="1.5" y="1.5" width="61" height="61" rx="12" fill="none" stroke="currentColor" stroke-width="3"/>
-            <text x="32" y="41" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="24" fill="currentColor">QFC</text>
-            <rect x="16" y="49" width="32" height="4" rx="2" fill="var(--scarlet)"/>
-          </svg>
-        </span>
+        <picture class="brand__mark">
+          <source srcset="assets/logo_white.png" media="(prefers-color-scheme: dark)" />
+          <img src="assets/logo_black.png" alt="Rutgers Quantitative Finance Club" width="52" height="52" />
+        </picture>
         <h1 id="hub-title" class="brand__name brand__name--sm" tabindex="-1">Rutgers Quantitative Finance Club</h1>
         <p class="brand__tag">Everything you need in one place.</p>
       </div>

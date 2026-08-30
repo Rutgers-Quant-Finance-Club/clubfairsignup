@@ -41,8 +41,9 @@ Push these files to the repo root (or `/docs`) and enable Pages in
 - **Allowed email domains** live in `CONFIG.ALLOWED_EMAIL_DOMAINS`.
 - Add `?reset` to the URL to clear the saved unlock/intake state while testing.
 - The email row and the intake row share a `Submission ID` so you can join them.
-- Swap the inline `QFC` SVG in `index.html` for `assets/logo_black.png` if you
-  have the real logo file.
+- The club's official QFC monogram lives in `assets/` (`logo_black.png` for
+  light mode, `logo_white.png` swapped in for dark mode via `<picture>`), pulled
+  from rutgersqfc.com. It's also the favicon / OG image.
 - Re-run **Deploy → Manage deployments → New version** in Apps Script after any
   edit to `Code.gs`.
 

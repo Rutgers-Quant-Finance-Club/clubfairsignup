@@ -111,10 +111,18 @@ body {
 
 .brand__mark {
   display: inline-flex;
-  color: var(--ink);
   margin-bottom: 14px;
 }
-.brand__mark svg { display: block; }
+.brand__mark img {
+  display: block;
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+.brand--compact .brand__mark img {
+  width: 52px;
+  height: 52px;
+}
 
 .brand__name {
   margin: 0;
