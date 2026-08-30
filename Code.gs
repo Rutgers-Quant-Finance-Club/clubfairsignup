@@ -1,42 +1,32 @@
 /*******************************************************************************
- * Rutgers QFC — Link hub intake backend (Google Apps Script)
+ * Rutgers QFC — Link hub sign-up backend (Google Apps Script)
  * -----------------------------------------------------------------------------
  * WHAT IT DOES
- *   Accepts POSTs from the static GitHub Pages site and appends rows to two
- *   tabs in the bound Google Sheet:
- *     - "Emails"  : one row per gate verification  (type: "email")
- *     - "Intake"  : one row per optional form      (type: "intake")
- *   Both rows carry the same "Submission ID" (sid) so you can join them.
+ *   Accepts one POST per sign-up from the static GitHub Pages site and appends
+ *   a row to the "Signups" tab of the bound Google Sheet.
  *
  * SETUP
  *   1. Open your Google Sheet > Extensions > Apps Script.
  *   2. Delete any boilerplate, paste this whole file, save.
  *   3. Deploy > New deployment > type "Web app".
- *        - Description:        QFC intake
+ *        - Description:        QFC sign-ups
  *        - Execute as:         Me
  *        - Who has access:     Anyone
  *   4. Copy the Web app URL (ends in /exec) into script.js -> CONFIG.WEB_APP_URL
- *   5. Re-deploy (Deploy > Manage deployments > edit > Version: New) after any edit.
+ *   5. After ANY edit here: Deploy > Manage deployments > edit > Version: New.
  *
  * CORS
  *   The browser sends the body as text/plain, which is a "simple request",
  *   so there is NO preflight OPTIONS call. Apps Script web apps automatically
  *   attach Access-Control-Allow-Origin: * to the response, so fetch() from
- *   your GitHub Pages origin can read the JSON result. doOptions() is included
- *   as a belt-and-suspenders no-op in case a client still sends a preflight.
+ *   your GitHub Pages origin can read the JSON result.
  ******************************************************************************/
 
-/** Tab names + column order. Change labels here if you like. */
-var EMAIL_TAB  = 'Emails';
-var INTAKE_TAB = 'Intake';
+var SHEET_TAB = 'Signups';
 
-var EMAIL_HEADERS = [
-  'Timestamp', 'Submission ID', 'Email', 'Timezone', 'Page', 'Referrer', 'User Agent'
-];
-
-var INTAKE_HEADERS = [
+var HEADERS = [
   'Timestamp', 'Submission ID', 'Email',
-  'First Name', 'Last Name', 'Major', 'Graduation Year', 'Goals',
+  'First Name', 'Last Name', 'Phone', 'Major', 'Graduation Year', 'Goals',
   'Timezone', 'Page', 'Referrer', 'User Agent'
 ];
 
@@ -51,17 +41,26 @@ function doPost(e) {
   }
 
   try {
-    var data = parseBody_(e);
-    var type = String(data.type || 'email').toLowerCase();
+    var d = parseBody_(e);
+    var sh = getSheet_();
 
-    var out;
-    if (type === 'intake' || type === 'intake_form' || type === 'form') {
-      out = appendIntake_(data);
-    } else {
-      out = appendEmail_(data);
-    }
+    sh.appendRow([
+      d.ts || new Date().toISOString(),
+      d.sid || '',
+      d.email || '',
+      d.firstName || '',
+      d.lastName || '',
+      d.phone || '',
+      d.major || '',
+      d.gradYear || '',
+      d.goals || '',
+      d.tz || '',
+      d.page || '',
+      d.referrer || '',
+      d.ua || ''
+    ]);
 
-    return jsonOut_({ result: 'success', type: type, tab: out.tab, row: out.row });
+    return jsonOut_({ result: 'success', row: sh.getLastRow() });
   } catch (err) {
     return jsonOut_({ result: 'error', message: String((err && err.message) || err) });
   } finally {
@@ -72,7 +71,7 @@ function doPost(e) {
 /* --------------------------------------------------------- GET / OPTIONS ---- */
 
 function doGet(e) {
-  return jsonOut_({ result: 'success', status: 'QFC intake endpoint is live' });
+  return jsonOut_({ result: 'success', status: 'QFC sign-up endpoint is live' });
 }
 
 function doOptions(e) {
@@ -92,50 +91,17 @@ function parseBody_(e) {
   return (e && e.parameter) ? e.parameter : {};
 }
 
-function getSheet_(name, headers) {
+function getSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sh = ss.getSheetByName(name);
+  var sh = ss.getSheetByName(SHEET_TAB);
   if (!sh) {
-    sh = ss.insertSheet(name);
+    sh = ss.insertSheet(SHEET_TAB);
   }
   if (sh.getLastRow() === 0) {
-    sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+    sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight('bold');
     sh.setFrozenRows(1);
   }
   return sh;
-}
-
-function appendEmail_(d) {
-  var sh = getSheet_(EMAIL_TAB, EMAIL_HEADERS);
-  sh.appendRow([
-    d.ts || new Date().toISOString(),
-    d.sid || '',
-    d.email || '',
-    d.tz || '',
-    d.page || '',
-    d.referrer || '',
-    d.ua || ''
-  ]);
-  return { tab: EMAIL_TAB, row: sh.getLastRow() };
-}
-
-function appendIntake_(d) {
-  var sh = getSheet_(INTAKE_TAB, INTAKE_HEADERS);
-  sh.appendRow([
-    d.ts || new Date().toISOString(),
-    d.sid || '',
-    d.email || '',
-    d.firstName || '',
-    d.lastName || '',
-    d.major || '',
-    d.gradYear || '',
-    d.goals || '',
-    d.tz || '',
-    d.page || '',
-    d.referrer || '',
-    d.ua || ''
-  ]);
-  return { tab: INTAKE_TAB, row: sh.getLastRow() };
 }
 
 function jsonOut_(obj) {

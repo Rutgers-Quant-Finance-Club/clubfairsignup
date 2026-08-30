@@ -1,16 +1,18 @@
 # Rutgers QFC — Link Hub
 
 Static, single-page Linktree-style site for the Rutgers Quantitative Finance Club.
-Email-gated (Rutgers addresses only), with an optional slide-up intake form.
+A single sign-up form (Rutgers email + first/last name, phone, major, grad year,
+and an optional "what do you hope to get out of QFC?") gates the links. On submit
+one row is written to a Google Sheet and the links are revealed.
 No build step — plain `index.html` + `styles.css` + `script.js`.
 
 ## Files
 
 | File | Purpose |
 | --- | --- |
-| `index.html` | Markup: email gate, link hub, intake banner |
+| `index.html` | Markup: sign-up form + link hub |
 | `styles.css` | Styling (light + dark, mobile-first, Rutgers scarlet accent) |
-| `script.js` | Gate validation, reveal transitions, `fetch()` submission |
+| `script.js` | Form validation, reveal transition, `fetch()` submission |
 | `Code.gs` | Google Apps Script Web App that appends rows to your Sheet |
 
 ## Setup
@@ -39,8 +41,11 @@ Push these files to the repo root (or `/docs`) and enable Pages in
 ## Notes
 - **Edit links** in the `LINKS` / `SOCIALS` arrays in `script.js`.
 - **Allowed email domains** live in `CONFIG.ALLOWED_EMAIL_DOMAINS`.
-- Add `?reset` to the URL to clear the saved unlock/intake state while testing.
-- The email row and the intake row share a `Submission ID` so you can join them.
+- **Make a field optional:** remove its `required` attribute in `index.html` and
+  delete its check in `initGate()` in `script.js`. `goals` is already optional.
+- Rows land in the **Signups** tab, one per submission, stamped with a
+  `Submission ID`.
+- Add `?reset` to the URL to clear the saved sign-up state while testing.
 - The club's official QFC monogram lives in `assets/` (`logo_black.png` for
   light mode, `logo_white.png` swapped in for dark mode via `<picture>`), pulled
   from rutgersqfc.com. It's also the favicon / OG image.
@@ -52,5 +57,6 @@ Push these files to the repo root (or `/docs`) and enable Pages in
 so the browser skips the preflight `OPTIONS` call that Apps Script can't answer.
 Apps Script web apps return `Access-Control-Allow-Origin: *` on the real
 response, so `fetch()` can read the JSON result. If the primary call ever
-throws, the code retries once as a fire-and-forget `no-cors` POST so a signup
-is never lost.
+throws, the code retries once as a fire-and-forget `no-cors` POST so a sign-up
+is never lost. The links are revealed immediately on submit — the network call
+never blocks the user.

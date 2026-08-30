@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Rutgers Quantitative Finance Club — Links</title>
-  <meta name="description" content="Official link hub for the Rutgers Quantitative Finance Club (QFC). Verify your Rutgers email to access club links." />
+  <meta name="description" content="Official link hub for the Rutgers Quantitative Finance Club (QFC). Sign in with your Rutgers email to access club links." />
   <meta name="color-scheme" content="light dark" />
 
   <link rel="icon" type="image/png" href="assets/logo_black.png" />
@@ -28,7 +28,7 @@
   <div class="page">
 
     <!-- ============================================================
-         EMAIL GATE  (initial state)
+         SIGN-UP GATE  (initial state — collects everything up front)
     ============================================================= -->
     <section id="gate" class="panel gate" aria-labelledby="gate-title">
       <div class="brand">
@@ -37,24 +37,59 @@
           <img src="assets/logo_black.png" alt="Rutgers Quantitative Finance Club" width="72" height="72" />
         </picture>
         <h1 id="gate-title" class="brand__name">Rutgers Quantitative<br />Finance Club</h1>
-        <p class="brand__tag">Verify your Rutgers email to unlock the club links.</p>
+        <p class="brand__tag">Fill this out to unlock the club links.</p>
       </div>
 
       <form id="gate-form" class="form" novalidate>
-        <label class="label" for="email">Scarletmail address</label>
-        <input
-          class="input"
-          id="email"
-          name="email"
-          type="email"
-          inputmode="email"
-          autocomplete="email"
-          spellcheck="false"
-          placeholder="netid@scarletmail.rutgers.edu"
-          aria-describedby="gate-hint gate-error"
-          required
-        />
-        <p id="gate-hint" class="hint">Must end in <b>@scarletmail.rutgers.edu</b> or <b>@rutgers.edu</b>.</p>
+        <div class="form--grid">
+          <div class="field field--full">
+            <label class="label" for="email">Scarletmail address</label>
+            <input
+              class="input"
+              id="email"
+              name="email"
+              type="email"
+              inputmode="email"
+              autocomplete="email"
+              spellcheck="false"
+              placeholder="netid@scarletmail.rutgers.edu"
+              aria-describedby="gate-hint"
+              required
+            />
+            <p id="gate-hint" class="hint">Must end in <b>@scarletmail.rutgers.edu</b> or <b>@rutgers.edu</b>.</p>
+          </div>
+
+          <div class="field">
+            <label class="label" for="firstName">First name</label>
+            <input class="input" id="firstName" name="firstName" type="text" autocomplete="given-name" required />
+          </div>
+          <div class="field">
+            <label class="label" for="lastName">Last name</label>
+            <input class="input" id="lastName" name="lastName" type="text" autocomplete="family-name" required />
+          </div>
+
+          <div class="field">
+            <label class="label" for="phone">Phone number</label>
+            <input class="input" id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(732) 555-0123" required />
+          </div>
+          <div class="field">
+            <label class="label" for="gradYear">Graduation year</label>
+            <select class="input" id="gradYear" name="gradYear" required>
+              <option value="" selected disabled>Select…</option>
+            </select>
+          </div>
+
+          <div class="field field--full">
+            <label class="label" for="major">Major</label>
+            <input class="input" id="major" name="major" type="text" placeholder="e.g. Financial Mathematics" required />
+          </div>
+
+          <div class="field field--full">
+            <label class="label" for="goals">What do you hope to get out of QFC? <span class="label__opt">(optional)</span></label>
+            <textarea class="input" id="goals" name="goals" rows="3" maxlength="600" placeholder="Skills, community, recruiting, research…"></textarea>
+          </div>
+        </div>
+
         <p id="gate-error" class="error" role="alert" aria-live="assertive"></p>
 
         <!-- Honeypot: hidden from humans, catches bots -->
@@ -64,7 +99,7 @@
         </div>
 
         <button class="btn btn--primary" type="submit" id="gate-submit">Unlock the links</button>
-        <p class="fineprint">We record your email only to measure club interest. No spam.</p>
+        <p class="fineprint">We use this only to track club interest and follow up. No spam.</p>
       </form>
     </section>
 
@@ -86,60 +121,10 @@
       <ul class="socials" id="socials" aria-label="Social media"><!-- injected by script.js --></ul>
 
       <footer class="foot">
-        <button class="linklike" id="open-intake" type="button">Tell us about yourself ↑</button>
         <span>© <span id="year"></span> Rutgers QFC</span>
       </footer>
     </main>
   </div>
-
-  <!-- ============================================================
-       OPTIONAL INTAKE  ("cookie banner" style slide-up)
-  ============================================================= -->
-  <aside id="intake" class="intake" hidden aria-labelledby="intake-title">
-    <button class="intake__x" id="intake-dismiss" type="button" aria-label="Dismiss form">&times;</button>
-
-    <div class="intake__body">
-      <h2 id="intake-title" class="intake__title">Help us get to know you</h2>
-      <p class="intake__lead">Optional — takes ~20 seconds. You can skip this.</p>
-
-      <form id="intake-form" class="form form--grid" novalidate>
-        <div class="field">
-          <label class="label" for="firstName">First name</label>
-          <input class="input" id="firstName" name="firstName" type="text" autocomplete="given-name" required />
-        </div>
-        <div class="field">
-          <label class="label" for="lastName">Last name</label>
-          <input class="input" id="lastName" name="lastName" type="text" autocomplete="family-name" required />
-        </div>
-        <div class="field">
-          <label class="label" for="major">Major</label>
-          <input class="input" id="major" name="major" type="text" placeholder="e.g. Financial Mathematics" required />
-        </div>
-        <div class="field">
-          <label class="label" for="gradYear">Graduation year</label>
-          <select class="input" id="gradYear" name="gradYear" required>
-            <option value="" selected disabled>Select…</option>
-          </select>
-        </div>
-        <div class="field field--full">
-          <label class="label" for="goals">What do you hope to get out of QFC?</label>
-          <textarea class="input" id="goals" name="goals" rows="3" maxlength="600" placeholder="Skills, community, recruiting, research…"></textarea>
-        </div>
-
-        <!-- Honeypot -->
-        <div class="hp" aria-hidden="true">
-          <label for="website">Website</label>
-          <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
-        </div>
-
-        <div class="intake__actions field--full">
-          <button class="btn btn--ghost" type="button" id="intake-skip">Skip</button>
-          <button class="btn btn--primary" type="submit" id="intake-submit">Submit</button>
-        </div>
-        <p id="intake-status" class="hint" role="status" aria-live="polite"></p>
-      </form>
-    </div>
-  </aside>
 
   <script src="script.js"></script>
 </body>

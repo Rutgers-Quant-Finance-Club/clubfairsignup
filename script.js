@@ -1,7 +1,7 @@
 /* =========================================================================
    Rutgers QFC — Link hub logic
-   - Email gate (Rutgers-only) -> reveals link hub
-   - Optional "cookie banner" intake form
+   - One sign-up form (Rutgers email + contact details) gates the links
+   - On submit: one row goes to the Google Sheet, then the links are revealed
    - Async submission to a Google Apps Script Web App (no backend needed)
    ========================================================================= */
 
@@ -16,15 +16,15 @@ const CONFIG = {
      "Execute as: Me", "Who has access: Anyone") and paste the /exec URL: */
   WEB_APP_URL: 'https://script.google.com/macros/s/AKfycby2jDQDPi2e_zTcvTHpJvB01pIWPedZ-2GndofbMgtpN99BC-bdYzlwgXxL265eRUHXVw/exec',
 
-  /* Domains accepted by the email gate. Add 'rutgers.edu' subdomains here
+  /* Domains accepted by the email field. Add 'rutgers.edu' subdomains here
      if you want to loosen it (e.g. 'eden.rutgers.edu'). */
   ALLOWED_EMAIL_DOMAINS: ['scarletmail.rutgers.edu', 'rutgers.edu'],
 
-  /* If true, a returning visitor who already verified skips the gate. */
+  /* If true, a returning visitor who already signed up skips the form. */
   REMEMBER_UNLOCK: true,
 
-  /* Delay (ms) before the intake banner slides up after unlock. */
-  INTAKE_DELAY_MS: 900,
+  /* Minimum digit count for the phone field. */
+  MIN_PHONE_DIGITS: 10,
 };
 
 /* -------------------------------------------------------------------------
@@ -81,7 +81,6 @@ const KEY = {
   unlocked: 'qfc_unlocked',
   email: 'qfc_email',
   sid: 'qfc_sid',
-  intakeDone: 'qfc_intake_done',
 };
 
 const store = {
@@ -99,7 +98,7 @@ function uuid() {
   });
 }
 
-/** Stable per-visitor id that ties the email row to the intake row. */
+/** Stable per-visitor id stamped on the submission row. */
 function getSid() {
   let sid = store.get(KEY.sid);
   if (!sid) { sid = uuid(); store.set(KEY.sid, sid); }
@@ -109,7 +108,7 @@ function getSid() {
 const $ = (sel, root = document) => root.querySelector(sel);
 
 /* -------------------------------------------------------------------------
-   4. Email validation
+   4. Field validation
    ------------------------------------------------------------------------- */
 
 function normalizeEmail(raw) {
@@ -123,6 +122,10 @@ function isRutgersEmail(email) {
   return CONFIG.ALLOWED_EMAIL_DOMAINS.some(
     (d) => domain === d || domain.endsWith('.' + d)
   );
+}
+
+function digitsOnly(s) {
+  return String(s || '').replace(/\D+/g, '');
 }
 
 /* -------------------------------------------------------------------------
@@ -216,22 +219,23 @@ function buildHub() {
   }
   const yr = $('#year');
   if (yr) yr.textContent = String(new Date().getFullYear());
+}
 
-  // Graduation-year options: this year .. +6
+/** Fill the graduation-year <select>: this year .. +6. */
+function populateGradYears() {
   const sel = $('#gradYear');
-  if (sel && sel.options.length <= 1) {
-    const now = new Date().getFullYear();
-    for (let y = now; y <= now + 6; y++) {
-      const o = document.createElement('option');
-      o.value = String(y);
-      o.textContent = String(y);
-      sel.appendChild(o);
-    }
+  if (!sel || sel.options.length > 1) return;
+  const now = new Date().getFullYear();
+  for (let y = now; y <= now + 6; y++) {
+    const o = document.createElement('option');
+    o.value = String(y);
+    o.textContent = String(y);
+    sel.appendChild(o);
   }
 }
 
 /* -------------------------------------------------------------------------
-   7. Reveal / conceal transitions
+   7. Reveal transition
    ------------------------------------------------------------------------- */
 
 function revealHub({ animate = true } = {}) {
@@ -261,131 +265,85 @@ function revealHub({ animate = true } = {}) {
   setTimeout(done, 500); // fallback if transitionend never fires
 }
 
-function showIntake() {
-  if (store.get(KEY.intakeDone) === '1') return;
-  const el = $('#intake');
-  if (!el || !el.hidden) return;
-  el.hidden = false;
-  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('is-in')));
-}
-
-function hideIntake(markDone) {
-  const el = $('#intake');
-  if (!el) return;
-  el.classList.remove('is-in');
-  const finish = () => { el.hidden = true; };
-  el.addEventListener('transitionend', finish, { once: true });
-  setTimeout(finish, 600);
-  if (markDone) store.set(KEY.intakeDone, '1');
-}
-
 /* -------------------------------------------------------------------------
-   8. Wiring
+   8. Sign-up form
    ------------------------------------------------------------------------- */
 
 function initGate() {
   const form = $('#gate-form');
-  const input = $('#email');
   const errEl = $('#gate-error');
   const btn = $('#gate-submit');
 
-  const clearErr = () => { errEl.textContent = ''; input.setAttribute('aria-invalid', 'false'); };
-  input.addEventListener('input', clearErr);
+  const fields = {
+    email: $('#email'),
+    firstName: $('#firstName'),
+    lastName: $('#lastName'),
+    phone: $('#phone'),
+    gradYear: $('#gradYear'),
+    major: $('#major'),
+    goals: $('#goals'),
+  };
+
+  const clearError = () => {
+    errEl.textContent = '';
+    Object.values(fields).forEach((el) => el && el.setAttribute('aria-invalid', 'false'));
+  };
+  const fail = (msg, el) => {
+    errEl.textContent = msg;
+    if (el) { el.setAttribute('aria-invalid', 'true'); el.focus(); }
+  };
+
+  form.addEventListener('input', clearError);
+  form.addEventListener('change', clearError);
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     // Honeypot tripped -> pretend success, send nothing.
     if ($('#company') && $('#company').value.trim() !== '') {
+      store.set(KEY.unlocked, '1');
       revealHub();
       return;
     }
 
-    const email = normalizeEmail(input.value);
-    if (!email) {
-      errEl.textContent = 'Enter your Rutgers email to continue.';
-      input.setAttribute('aria-invalid', 'true');
-      input.focus();
-      return;
-    }
-    if (!isRutgersEmail(email)) {
-      errEl.textContent = 'Use a @scarletmail.rutgers.edu or @rutgers.edu address.';
-      input.setAttribute('aria-invalid', 'true');
-      input.focus();
-      return;
-    }
+    const data = {
+      type: 'signup',
+      email: normalizeEmail(fields.email.value),
+      firstName: fields.firstName.value.trim(),
+      lastName: fields.lastName.value.trim(),
+      phone: fields.phone.value.trim(),
+      gradYear: fields.gradYear.value,
+      major: fields.major.value.trim(),
+      goals: fields.goals.value.trim(),
+    };
 
-    clearErr();
+    // --- validation (all required except "goals") ---
+    if (!data.email) return fail('Enter your Rutgers email.', fields.email);
+    if (!isRutgersEmail(data.email))
+      return fail('Use a @scarletmail.rutgers.edu or @rutgers.edu address.', fields.email);
+    if (!data.firstName) return fail('Enter your first name.', fields.firstName);
+    if (!data.lastName) return fail('Enter your last name.', fields.lastName);
+    if (digitsOnly(data.phone).length < CONFIG.MIN_PHONE_DIGITS)
+      return fail('Enter a valid phone number.', fields.phone);
+    if (!data.gradYear) return fail('Select your graduation year.', fields.gradYear);
+    if (!data.major) return fail('Enter your major.', fields.major);
+
+    clearError();
     btn.disabled = true;
-    btn.textContent = 'Verifying…';
+    btn.textContent = 'Submitting…';
 
     // Persist + reveal immediately; never block the user on the network.
-    store.set(KEY.email, email);
+    store.set(KEY.email, data.email);
     if (CONFIG.REMEMBER_UNLOCK) store.set(KEY.unlocked, '1');
 
     revealHub();
-    setTimeout(showIntake, CONFIG.INTAKE_DELAY_MS);
 
-    // Fire the signup row in the background.
-    sendToSheet({ type: 'email', email })
+    sendToSheet(data)
       .then((r) => {
         if (r.skipped) console.warn('[QFC] signup not stored (WEB_APP_URL missing).');
+        else if (!r.ok && !r.opaque) console.warn('[QFC] signup POST did not confirm.');
       })
       .catch((err) => console.error('[QFC] signup error', err));
-  });
-}
-
-function initIntake() {
-  const form = $('#intake-form');
-  const statusEl = $('#intake-status');
-
-  $('#intake-dismiss').addEventListener('click', () => hideIntake(true));
-  $('#intake-skip').addEventListener('click', () => hideIntake(true));
-
-  const openBtn = $('#open-intake');
-  if (openBtn) {
-    openBtn.addEventListener('click', () => {
-      store.del(KEY.intakeDone);
-      showIntake();
-    });
-  }
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    if ($('#website') && $('#website').value.trim() !== '') { hideIntake(true); return; }
-
-    const data = {
-      type: 'intake',
-      email: store.get(KEY.email) || '',
-      firstName: $('#firstName').value.trim(),
-      lastName: $('#lastName').value.trim(),
-      major: $('#major').value.trim(),
-      gradYear: $('#gradYear').value,
-      goals: $('#goals').value.trim(),
-    };
-
-    if (!data.firstName || !data.lastName || !data.major || !data.gradYear) {
-      statusEl.textContent = 'Please fill in name, major, and graduation year (or hit Skip).';
-      return;
-    }
-
-    const submitBtn = $('#intake-submit');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Sending…';
-    statusEl.textContent = '';
-
-    const r = await sendToSheet(data);
-    store.set(KEY.intakeDone, '1');
-
-    if (r.ok || r.opaque) {
-      statusEl.textContent = 'Thanks — see you at a meeting!';
-    } else if (r.skipped) {
-      statusEl.textContent = 'Saved locally (form endpoint not configured yet).';
-    } else {
-      statusEl.textContent = 'Could not reach the server, but no worries — you still have the links.';
-    }
-    setTimeout(() => hideIntake(true), 1100);
   });
 }
 
@@ -394,20 +352,17 @@ function initIntake() {
    ------------------------------------------------------------------------- */
 
 function boot() {
-  // ?reset  ->  clear everything (handy for testing the gate)
+  // ?reset  ->  clear saved state (handy for testing the form)
   if (/(^|[?&#])reset\b/.test(location.search + location.hash)) {
     Object.values(KEY).forEach(store.del);
   }
 
+  populateGradYears();
   initGate();
-  initIntake();
 
   const alreadyUnlocked = CONFIG.REMEMBER_UNLOCK && store.get(KEY.unlocked) === '1';
   if (alreadyUnlocked) {
     revealHub({ animate: false });
-    if (store.get(KEY.intakeDone) !== '1') {
-      setTimeout(showIntake, CONFIG.INTAKE_DELAY_MS);
-    }
   }
 }
 

@@ -77,11 +77,11 @@ body {
   z-index: 1;
   max-width: var(--maxw);
   margin: 0 auto;
-  padding: clamp(24px, 6vw, 56px) 20px calc(96px + env(safe-area-inset-bottom));
+  padding: clamp(24px, 6vw, 56px) 20px calc(clamp(24px, 6vw, 56px) + env(safe-area-inset-bottom));
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: safe center;
 }
 
 /* ---------- Panels & transitions ------------------------------------------ */
@@ -162,6 +162,7 @@ body {
   color: var(--ink-soft);
   letter-spacing: .01em;
 }
+.label__opt { font-weight: 400; color: var(--ink-faint); }
 
 .input {
   width: 100%;
@@ -355,91 +356,12 @@ select.input {
   text-align: center;
   font-size: .78rem;
   color: var(--ink-faint);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
-.linklike {
-  font: inherit;
-  font-size: .8rem;
-  font-weight: 600;
-  color: var(--scarlet);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-}
-.linklike:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* ---------- Intake "cookie banner" ------------------------------------- */
-
-.intake {
-  position: fixed;
-  left: 50%;
-  bottom: 0;
-  z-index: 50;
-  width: min(560px, calc(100% - 24px));
-  margin-bottom: calc(16px + env(safe-area-inset-bottom));
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: 16px;
-  box-shadow: var(--shadow-lg);
-  transform: translate(-50%, 140%);
-  transition: transform .5s var(--ease);
-}
-.intake.is-in { transform: translate(-50%, 0); }
-.intake[hidden] { display: none; }
-
-.intake__body { padding: 20px 20px 18px; }
-
-.intake__x {
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  width: 34px;
-  height: 34px;
-  font-size: 22px;
-  line-height: 1;
-  color: var(--ink-faint);
-  background: none;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.intake__x:hover { color: var(--ink); background: var(--line); }
-.intake__x:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-
-.intake__title {
-  margin: 0 24px 2px 0;
-  font-size: 1.02rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
-.intake__lead {
-  margin: 0 0 14px;
-  font-size: .82rem;
-  color: var(--ink-soft);
-}
-
-.intake__actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  align-items: center;
-  margin-top: 2px;
-}
-.intake__actions .btn--primary { width: auto; margin-top: 0; padding-inline: 22px; }
 
 /* ---------- Motion / a11y preferences --------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  .panel, .btn, .link, .link__arrow, .socials a, .intake { transition: none !important; }
+  .panel, .btn, .link, .link__arrow, .socials a { transition: none !important; }
   .hub { opacity: 1; transform: none; }
   .gate.is-out { opacity: 0; transform: none; }
-  .intake { transform: translate(-50%, 0); }
-  .intake[hidden] { display: none; }
 }
