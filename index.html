@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Rutgers Quantitative Finance Club — Links</title>
-  <meta name="description" content="Official link hub for the Rutgers Quantitative Finance Club (QFC). Sign in with your Rutgers email to access club links." />
+  <meta name="description" content="Official link hub for the Rutgers Quantitative Finance Club (QFC). Sign in with your Rutgers NetID to access club links." />
   <meta name="color-scheme" content="light dark" />
 
   <link rel="icon" type="image/png" href="assets/logo_black.png" />
@@ -43,20 +43,21 @@
       <form id="gate-form" class="form" novalidate>
         <div class="form--grid">
           <div class="field field--full">
-            <label class="label" for="email">Scarletmail address</label>
+            <label class="label" for="netid">Rutgers NetID</label>
             <input
               class="input"
-              id="email"
-              name="email"
-              type="email"
-              inputmode="email"
-              autocomplete="email"
+              id="netid"
+              name="netid"
+              type="text"
+              autocomplete="username"
               spellcheck="false"
-              placeholder="netid@scarletmail.rutgers.edu"
+              autocapitalize="none"
+              autocorrect="off"
+              placeholder="abc123"
               aria-describedby="gate-hint"
               required
             />
-            <p id="gate-hint" class="hint">Must end in <b>@scarletmail.rutgers.edu</b> or <b>@rutgers.edu</b>.</p>
+            <p id="gate-hint" class="hint">Just your NetID — we'll reach you at <b>netid@scarletmail.rutgers.edu</b>.</p>
           </div>
 
           <div class="field">
@@ -69,8 +70,8 @@
           </div>
 
           <div class="field">
-            <label class="label" for="phone">Phone number</label>
-            <input class="input" id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(732) 555-0123" required />
+            <label class="label" for="major">Major</label>
+            <input class="input" id="major" name="major" type="text" placeholder="e.g. Financial Mathematics" required />
           </div>
           <div class="field">
             <label class="label" for="gradYear">Graduation year</label>
@@ -80,13 +81,13 @@
           </div>
 
           <div class="field field--full">
-            <label class="label" for="major">Major</label>
-            <input class="input" id="major" name="major" type="text" placeholder="e.g. Financial Mathematics" required />
+            <label class="label" for="goals">What do you hope to get out of QFC? <span class="label__opt">(optional)</span></label>
+            <textarea class="input" id="goals" name="goals" rows="3" maxlength="600" placeholder="Skills, community, recruiting, research…"></textarea>
           </div>
 
           <div class="field field--full">
-            <label class="label" for="goals">What do you hope to get out of QFC? <span class="label__opt">(optional)</span></label>
-            <textarea class="input" id="goals" name="goals" rows="3" maxlength="600" placeholder="Skills, community, recruiting, research…"></textarea>
+            <label class="label" for="meetTime">When is the best time for the club to meet weekly for you? <span class="label__opt">(optional)</span></label>
+            <textarea class="input" id="meetTime" name="meetTime" rows="2" maxlength="300" placeholder="e.g. weekday evenings after 6pm, Friday afternoons…"></textarea>
           </div>
         </div>
 

@@ -25,8 +25,9 @@
 var SHEET_TAB = 'Signups';
 
 var HEADERS = [
-  'Timestamp', 'Submission ID', 'Email',
-  'First Name', 'Last Name', 'Phone', 'Major', 'Graduation Year', 'Goals',
+  'Timestamp', 'Submission ID', 'NetID', 'Email',
+  'First Name', 'Last Name', 'Major', 'Graduation Year',
+  'Goals', 'Best Meeting Time',
   'Timezone', 'Page', 'Referrer', 'User Agent'
 ];
 
@@ -47,13 +48,14 @@ function doPost(e) {
     sh.appendRow([
       d.ts || new Date().toISOString(),
       d.sid || '',
+      d.netid || '',
       d.email || '',
       d.firstName || '',
       d.lastName || '',
-      d.phone || '',
       d.major || '',
       d.gradYear || '',
       d.goals || '',
+      d.meetTime || '',
       d.tz || '',
       d.page || '',
       d.referrer || '',

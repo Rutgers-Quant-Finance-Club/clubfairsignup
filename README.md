@@ -1,9 +1,11 @@
 # Rutgers QFC — Link Hub
 
 Static, single-page Linktree-style site for the Rutgers Quantitative Finance Club.
-A single sign-up form (Rutgers email + first/last name, phone, major, grad year,
-and an optional "what do you hope to get out of QFC?") gates the links. On submit
-one row is written to a Google Sheet and the links are revealed.
+A single sign-up form gates the links: Rutgers **NetID** (turned into
+`netid@scarletmail.rutgers.edu`), first/last name, major, graduation year, plus
+two optional textareas — "what do you hope to get out of QFC?" and "when is the
+best time for the club to meet weekly for you?". On submit one row is written to
+a Google Sheet and the links are revealed.
 No build step — plain `index.html` + `styles.css` + `script.js`.
 
 ## Files
@@ -40,11 +42,14 @@ Push these files to the repo root (or `/docs`) and enable Pages in
 
 ## Notes
 - **Edit links** in the `LINKS` / `SOCIALS` arrays in `script.js`.
-- **Allowed email domains** live in `CONFIG.ALLOWED_EMAIL_DOMAINS`.
+- **Graduation years** in the dropdown: `CONFIG.GRAD_YEARS` in `script.js`.
+- **NetID → email:** built as `<netid>@` + `CONFIG.SCARLETMAIL_DOMAIN`.
 - **Make a field optional:** remove its `required` attribute in `index.html` and
-  delete its check in `initGate()` in `script.js`. `goals` is already optional.
-- Rows land in the **Signups** tab, one per submission, stamped with a
-  `Submission ID`.
+  delete its check in `initGate()` in `script.js`. `goals` and `meetTime` are
+  already optional.
+- Rows land in the **Signups** tab, one per submission (columns: Timestamp,
+  Submission ID, NetID, Email, First Name, Last Name, Major, Graduation Year,
+  Goals, Best Meeting Time, + Timezone/Page/Referrer/User Agent).
 - Add `?reset` to the URL to clear the saved sign-up state while testing.
 - The club's official QFC monogram lives in `assets/` (`logo_black.png` for
   light mode, `logo_white.png` swapped in for dark mode via `<picture>`), pulled

@@ -1,6 +1,6 @@
 /* =========================================================================
    Rutgers QFC — Link hub logic
-   - One sign-up form (Rutgers email + contact details) gates the links
+   - One sign-up form (Rutgers NetID + details) gates the links
    - On submit: one row goes to the Google Sheet, then the links are revealed
    - Async submission to a Google Apps Script Web App (no backend needed)
    ========================================================================= */
@@ -16,15 +16,14 @@ const CONFIG = {
      "Execute as: Me", "Who has access: Anyone") and paste the /exec URL: */
   WEB_APP_URL: 'https://script.google.com/macros/s/AKfycby2jDQDPi2e_zTcvTHpJvB01pIWPedZ-2GndofbMgtpN99BC-bdYzlwgXxL265eRUHXVw/exec',
 
-  /* Domains accepted by the email field. Add 'rutgers.edu' subdomains here
-     if you want to loosen it (e.g. 'eden.rutgers.edu'). */
-  ALLOWED_EMAIL_DOMAINS: ['scarletmail.rutgers.edu', 'rutgers.edu'],
+  /* NetIDs are turned into an email as `<netid>@<SCARLETMAIL_DOMAIN>`. */
+  SCARLETMAIL_DOMAIN: 'scarletmail.rutgers.edu',
+
+  /* Graduation years shown in the dropdown — edit yearly. */
+  GRAD_YEARS: ['2026', '2027', '2028', '2029', '2030', '2031'],
 
   /* If true, a returning visitor who already signed up skips the form. */
   REMEMBER_UNLOCK: true,
-
-  /* Minimum digit count for the phone field. */
-  MIN_PHONE_DIGITS: 10,
 };
 
 /* -------------------------------------------------------------------------
@@ -111,21 +110,21 @@ const $ = (sel, root = document) => root.querySelector(sel);
    4. Field validation
    ------------------------------------------------------------------------- */
 
-function normalizeEmail(raw) {
-  return String(raw || '').trim().toLowerCase();
+/** Accept a bare NetID or a full Rutgers address; return the lowercased NetID. */
+function normalizeNetid(raw) {
+  return String(raw || '')
+    .trim()
+    .toLowerCase()
+    .replace(/@(scarletmail\.)?rutgers\.edu$/, '');
 }
 
-function isRutgersEmail(email) {
-  const m = /^[^\s@]+@([^\s@]+)$/.exec(email);
-  if (!m) return false;
-  const domain = m[1];
-  return CONFIG.ALLOWED_EMAIL_DOMAINS.some(
-    (d) => domain === d || domain.endsWith('.' + d)
-  );
+function isValidNetid(netid) {
+  // Rutgers NetIDs are alphanumeric, ~2-6 letters + digits. Stay forgiving.
+  return /^[a-z0-9]{2,20}$/.test(netid) && /[a-z]/.test(netid);
 }
 
-function digitsOnly(s) {
-  return String(s || '').replace(/\D+/g, '');
+function emailFromNetid(netid) {
+  return netid + '@' + CONFIG.SCARLETMAIL_DOMAIN;
 }
 
 /* -------------------------------------------------------------------------
@@ -221,17 +220,16 @@ function buildHub() {
   if (yr) yr.textContent = String(new Date().getFullYear());
 }
 
-/** Fill the graduation-year <select>: this year .. +6. */
+/** Fill the graduation-year <select> from CONFIG.GRAD_YEARS. */
 function populateGradYears() {
   const sel = $('#gradYear');
   if (!sel || sel.options.length > 1) return;
-  const now = new Date().getFullYear();
-  for (let y = now; y <= now + 6; y++) {
+  CONFIG.GRAD_YEARS.forEach((y) => {
     const o = document.createElement('option');
     o.value = String(y);
     o.textContent = String(y);
     sel.appendChild(o);
-  }
+  });
 }
 
 /* -------------------------------------------------------------------------
@@ -275,13 +273,13 @@ function initGate() {
   const btn = $('#gate-submit');
 
   const fields = {
-    email: $('#email'),
+    netid: $('#netid'),
     firstName: $('#firstName'),
     lastName: $('#lastName'),
-    phone: $('#phone'),
-    gradYear: $('#gradYear'),
     major: $('#major'),
+    gradYear: $('#gradYear'),
     goals: $('#goals'),
+    meetTime: $('#meetTime'),
   };
 
   const clearError = () => {
@@ -306,27 +304,27 @@ function initGate() {
       return;
     }
 
+    const netid = normalizeNetid(fields.netid.value);
     const data = {
       type: 'signup',
-      email: normalizeEmail(fields.email.value),
+      netid: netid,
+      email: netid ? emailFromNetid(netid) : '',
       firstName: fields.firstName.value.trim(),
       lastName: fields.lastName.value.trim(),
-      phone: fields.phone.value.trim(),
-      gradYear: fields.gradYear.value,
       major: fields.major.value.trim(),
+      gradYear: fields.gradYear.value,
       goals: fields.goals.value.trim(),
+      meetTime: fields.meetTime.value.trim(),
     };
 
-    // --- validation (all required except "goals") ---
-    if (!data.email) return fail('Enter your Rutgers email.', fields.email);
-    if (!isRutgersEmail(data.email))
-      return fail('Use a @scarletmail.rutgers.edu or @rutgers.edu address.', fields.email);
+    // --- validation (all required except "goals" and "meetTime") ---
+    if (!netid) return fail('Enter your Rutgers NetID.', fields.netid);
+    if (!isValidNetid(netid))
+      return fail('That doesn’t look like a NetID (e.g. abc123).', fields.netid);
     if (!data.firstName) return fail('Enter your first name.', fields.firstName);
     if (!data.lastName) return fail('Enter your last name.', fields.lastName);
-    if (digitsOnly(data.phone).length < CONFIG.MIN_PHONE_DIGITS)
-      return fail('Enter a valid phone number.', fields.phone);
-    if (!data.gradYear) return fail('Select your graduation year.', fields.gradYear);
     if (!data.major) return fail('Enter your major.', fields.major);
+    if (!data.gradYear) return fail('Select your graduation year.', fields.gradYear);
 
     clearError();
     btn.disabled = true;
