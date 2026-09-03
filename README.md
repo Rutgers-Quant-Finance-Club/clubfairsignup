@@ -47,9 +47,12 @@ Push these files to the repo root (or `/docs`) and enable Pages in
 - **Make a field optional:** remove its `required` attribute in `index.html` and
   delete its check in `initGate()` in `script.js`. `goals` and `meetTime` are
   already optional.
-- Rows land in the **Signups** tab, one per submission (columns: Timestamp,
-  Submission ID, NetID, Email, First Name, Last Name, Major, Graduation Year,
-  Goals, Best Meeting Time, + Timezone/Page/Referrer/User Agent).
+- Rows land in the **Signups** tab (columns: Timestamp, Submission ID, NetID,
+  Email, First Name, Last Name, Major, Graduation Year, Goals, Best Meeting Time,
+  + Timezone/Page/Referrer/User Agent).
+- **One row per NetID.** Re-submitting with the same NetID overwrites that
+  person's row in place (original Timestamp + Submission ID kept, everything
+  else replaced with the newest submission) — no duplicates.
 - Add `?reset` to the URL to clear the saved sign-up state while testing.
 - The club's official QFC monogram lives in `assets/` (`logo_black.png` for
   light mode, `logo_white.png` swapped in for dark mode via `<picture>`), pulled

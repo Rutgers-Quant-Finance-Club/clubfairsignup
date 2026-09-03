@@ -2,24 +2,25 @@
  * Rutgers QFC — Link hub sign-up backend (Google Apps Script)
  * -----------------------------------------------------------------------------
  * WHAT IT DOES
- *   Accepts one POST per sign-up from the static GitHub Pages site and appends
- *   a row to the "Signups" tab of the bound Google Sheet.
+ *   Accepts one POST per sign-up from the static GitHub Pages site.
+ *   - New NetID      -> appends a new row to the "Signups" tab.
+ *   - Existing NetID -> overwrites that person's row in place (no duplicates).
+ *                       The original Timestamp + Submission ID are kept;
+ *                       every other field is replaced with the newest submission.
  *
  * SETUP
  *   1. Open your Google Sheet > Extensions > Apps Script.
  *   2. Delete any boilerplate, paste this whole file, save.
  *   3. Deploy > New deployment > type "Web app".
- *        - Description:        QFC sign-ups
- *        - Execute as:         Me
- *        - Who has access:     Anyone
+ *        - Execute as:     Me
+ *        - Who has access: Anyone
  *   4. Copy the Web app URL (ends in /exec) into script.js -> CONFIG.WEB_APP_URL
  *   5. After ANY edit here: Deploy > Manage deployments > edit > Version: New.
  *
  * CORS
- *   The browser sends the body as text/plain, which is a "simple request",
- *   so there is NO preflight OPTIONS call. Apps Script web apps automatically
- *   attach Access-Control-Allow-Origin: * to the response, so fetch() from
- *   your GitHub Pages origin can read the JSON result.
+ *   The browser sends the body as text/plain (a "simple request"), so there is
+ *   no preflight. Apps Script web apps attach Access-Control-Allow-Origin: *
+ *   to the response, so fetch() from GitHub Pages can read the JSON result.
  ******************************************************************************/
 
 var SHEET_TAB = 'Signups';
@@ -36,7 +37,7 @@ var HEADERS = [
 function doPost(e) {
   var lock = LockService.getScriptLock();
   try {
-    lock.waitLock(30000); // avoid interleaved appendRow() races
+    lock.waitLock(30000); // serialize find + write so there is no race
   } catch (lockErr) {
     return jsonOut_({ result: 'error', message: 'Server busy, try again.' });
   }
@@ -44,11 +45,12 @@ function doPost(e) {
   try {
     var d = parseBody_(e);
     var sh = getSheet_();
+    var netid = normId_(d.netid);
 
-    sh.appendRow([
+    var row = [
       d.ts || new Date().toISOString(),
       d.sid || '',
-      d.netid || '',
+      netid,
       d.email || '',
       d.firstName || '',
       d.lastName || '',
@@ -60,9 +62,20 @@ function doPost(e) {
       d.page || '',
       d.referrer || '',
       d.ua || ''
-    ]);
+    ];
 
-    return jsonOut_({ result: 'success', row: sh.getLastRow() });
+    var existingRow = netid ? findRowByNetid_(sh, netid) : 0;
+
+    if (existingRow > 0) {
+      var prev = sh.getRange(existingRow, 1, 1, HEADERS.length).getValues()[0];
+      row[0] = prev[0] || row[0]; // keep original Timestamp
+      row[1] = prev[1] || row[1]; // keep original Submission ID
+      sh.getRange(existingRow, 1, 1, HEADERS.length).setValues([row]);
+      return jsonOut_({ result: 'success', action: 'updated', row: existingRow });
+    }
+
+    sh.appendRow(row);
+    return jsonOut_({ result: 'success', action: 'created', row: sh.getLastRow() });
   } catch (err) {
     return jsonOut_({ result: 'error', message: String((err && err.message) || err) });
   } finally {
@@ -82,6 +95,10 @@ function doOptions(e) {
 
 /* ------------------------------------------------------------- internals ---- */
 
+function normId_(v) {
+  return String(v == null ? '' : v).trim().toLowerCase();
+}
+
 function parseBody_(e) {
   if (e && e.postData && e.postData.contents) {
     try {
@@ -91,6 +108,27 @@ function parseBody_(e) {
     }
   }
   return (e && e.parameter) ? e.parameter : {};
+}
+
+/** 1-based column of the "NetID" header (falls back to 3 if not found). */
+function netidCol_(sh) {
+  var headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  for (var i = 0; i < headers.length; i++) {
+    if (String(headers[i]).trim().toLowerCase() === 'netid') return i + 1;
+  }
+  return 3;
+}
+
+/** 1-based row whose NetID matches, or 0 if none. First match wins. */
+function findRowByNetid_(sh, netid) {
+  var last = sh.getLastRow();
+  if (last < 2) return 0;
+  var col = netidCol_(sh);
+  var values = sh.getRange(2, col, last - 1, 1).getValues();
+  for (var i = 0; i < values.length; i++) {
+    if (normId_(values[i][0]) === netid) return i + 2;
+  }
+  return 0;
 }
 
 function getSheet_() {
